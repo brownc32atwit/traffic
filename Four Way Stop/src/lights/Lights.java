@@ -2,6 +2,7 @@ package lights;
 
 import java.util.*;
 import java.time.Clock;
+import java.io.*;
 
 public class Lights {
 
@@ -14,8 +15,8 @@ public class Lights {
 		// This array is purely symbolic of real lights.
 		// It serves no functional purpose in the program.
 		// 0 north, 1 south, 2 east, 3 west
-		// Based on position, not direction
-		// Color codes same as parseColor uses
+		// Based on position, not direction.
+		// Color codes same as parseColor uses.
 		int[] lightStatus = new int[4];
 
 		do {
@@ -23,7 +24,6 @@ public class Lights {
 			select = s.nextInt();
 
 			if (select == 1) {
-				System.out.println("Running setup...");
 				x = true;
 
 			} else if (select == 2) {
@@ -43,6 +43,7 @@ public class Lights {
 			setup(settings, s);
 			Clock clock = Clock.systemUTC();
 			msg(1, 0, clock);
+			File log = new File("log.txt");
 			new Thread(() -> runLights(clock, settings, true, lightStatus)).start();
 			new Thread(() -> runLights(clock, settings, false, lightStatus)).start();
 
@@ -58,22 +59,22 @@ public class Lights {
 	private static void setup(int[] x, Scanner s) {
 
 		do {
-			System.out.printf("How many seconds should a North/South green light last?");
+			System.out.printf("How many seconds should a North/South green light last? ");
 			x[0] = s.nextInt();
 		} while (x[0] < 1);
 
 		do {
-			System.out.printf("How many seconds should an East/West green light last?");
+			System.out.printf("How many seconds should an East/West green light last? ");
 			x[2] = s.nextInt();
 		} while (x[2] < 1);
 
 		do {
-			System.out.printf("How many seconds should a yellow light last?");
+			System.out.printf("How many seconds should a yellow light last? ");
 			x[1] = s.nextInt();
 		} while (x[1] < 1);
 
 		do {
-			System.out.printf("How many seconds should the red lights overlap?");
+			System.out.printf("How many seconds should the red lights overlap? ");
 			x[3] = s.nextInt();
 		} while (x[3] < 0);
 		return;
@@ -105,6 +106,14 @@ public class Lights {
 		}
 		String x = String.format(
 				time + ": Lights " + lightx + " changed from " + parseColor(color) + " to " + parseColor(color + 1));
+		FileWriter fw;
+		try {
+			fw = new FileWriter("log.txt", true);
+			fw.write(x + " ");
+			fw.close();
+		} catch (IOException e) {
+			System.out.println("Log file does not exist!");
+		}
 		// TODO Make it also go to a log, unless I decide to do it outside the method
 		// or you know I don't do that at all, just kinda depends.
 		return x;
@@ -124,12 +133,12 @@ public class Lights {
 					System.out.println(msg(1, 2, clock));
 					setLight(settings, true, 2);
 					Thread.sleep(ns);
-					
+
 					// Green to yellow, sleep length of yellow
 					System.out.println(msg(1, 0, clock));
 					setLight(settings, true, 0);
 					Thread.sleep(ye);
-					
+
 					// Yellow to red, sleep length of both overlaps + ew green + yellow
 					System.out.println(msg(1, 1, clock));
 					setLight(settings, true, 1);
@@ -143,17 +152,17 @@ public class Lights {
 				do {
 					// Sleep ns green + yellow + 1 overlap
 					Thread.sleep(ns + ye + ov);
-					
+
 					// Red to green, sleep length of ew
 					System.out.println(msg(2, 2, clock));
 					setLight(settings, false, 2);
 					Thread.sleep(ew);
-					
+
 					// Green to yellow, sleep length of yellow
 					System.out.println(msg(2, 0, clock));
 					setLight(settings, false, 0);
 					Thread.sleep(ye);
-					
+
 					// Yellow to red, sleep 1 overlap, rest is at the start of loop
 					System.out.println(msg(2, 1, clock));
 					setLight(settings, false, 1);
