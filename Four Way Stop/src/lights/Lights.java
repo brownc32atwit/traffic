@@ -11,6 +11,13 @@ public class Lights {
 		Boolean x = false;
 		int select;
 
+		// This array is purely symbolic of real lights.
+		// It serves no functional purpose in the program.
+		// 0 north, 1 south, 2 east, 3 west
+		// Based on position, not direction
+		// Color codes same as parseColor uses
+		int[] lightStatus = new int[4];
+
 		do {
 			System.out.printf("Run setup (1) or load config(2)?: ");
 			select = s.nextInt();
@@ -36,8 +43,8 @@ public class Lights {
 			setup(settings, s);
 			Clock clock = Clock.systemUTC();
 			msg(1, 0, clock);
-			new Thread(() -> northSouth(clock, settings, true)).start();
-			new Thread(() -> northSouth(clock, settings, false)).start();
+			new Thread(() -> runLights(clock, settings, true, lightStatus)).start();
+			new Thread(() -> runLights(clock, settings, false, lightStatus)).start();
 
 		} else if (select == 2) {
 			// TODO implement, temporary exit
@@ -103,7 +110,7 @@ public class Lights {
 		return x;
 	}
 
-	private static void northSouth(Clock clock, int[] settings, Boolean isItNS) {
+	private static void runLights(Clock clock, int[] settings, Boolean isItNS, int[] lightStatus) {
 		// North-south, east-west, yellow, overlap
 		int ns = settings[0] * 1000;
 		int ew = settings[2] * 1000;
@@ -115,34 +122,56 @@ public class Lights {
 				do {
 					// Red to green, sleep length of ns green
 					System.out.println(msg(1, 2, clock));
+					setLight(settings, true, 2);
 					Thread.sleep(ns);
+					
 					// Green to yellow, sleep length of yellow
 					System.out.println(msg(1, 0, clock));
+					setLight(settings, true, 0);
 					Thread.sleep(ye);
+					
 					// Yellow to red, sleep length of both overlaps + ew green + yellow
 					System.out.println(msg(1, 1, clock));
+					setLight(settings, true, 1);
 					Thread.sleep(ov * 2 + ew + ye);
 				} while (true);
 
 			} else {
 				// Start red
 				System.out.println(msg(2, 1, clock));
+				setLight(settings, false, 1);
 				do {
 					// Sleep ns green + yellow + 1 overlap
 					Thread.sleep(ns + ye + ov);
+					
 					// Red to green, sleep length of ew
 					System.out.println(msg(2, 2, clock));
+					setLight(settings, false, 2);
 					Thread.sleep(ew);
+					
 					// Green to yellow, sleep length of yellow
 					System.out.println(msg(2, 0, clock));
+					setLight(settings, false, 0);
 					Thread.sleep(ye);
+					
 					// Yellow to red, sleep 1 overlap, rest is at the start of loop
 					System.out.println(msg(2, 1, clock));
+					setLight(settings, false, 1);
 					Thread.sleep(ov);
 				} while (true);
 			}
 		} catch (InterruptedException e) {
 			System.exit(0);
+		}
+	}
+
+	private static void setLight(int[] x, Boolean y, int z) {
+		if (y) {
+			x[0] = z;
+			x[1] = z;
+		} else {
+			x[2] = z;
+			x[3] = z;
 		}
 	}
 
