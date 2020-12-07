@@ -51,7 +51,7 @@ public class Lights {
 			// Running East-West
 			new Thread(() -> runLights(clock, settings, false, lightStatus)).start();
 			// Error checking for symbplic array
-			new Thread(() -> checkLight(lightStatus)).start();
+			new Thread(() -> checkLight(lightStatus, clock)).start();
 
 			// Case for loading config
 		} else if (select == 2) {
