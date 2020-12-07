@@ -11,6 +11,7 @@ public class Lights {
 		Scanner s = new Scanner(System.in);
 		Boolean x = false;
 		int select;
+		File cfg = new File("config.txt");
 
 		// This array is purely symbolic of real lights.
 		// It serves no functional purpose in the program.
@@ -19,37 +20,45 @@ public class Lights {
 		// Color codes same as parseColor uses.
 		int[] lightStatus = new int[4];
 
-		do {
-			System.out.printf("Run setup (1) or load config(2)?: ");
-			select = s.nextInt();
+		if (cfg.exists() && !cfg.isDirectory()) {
+			do {
+				System.out.printf("Run setup (1) or load config(2)?: ");
+				select = s.nextInt();
 
-			if (select == 1) {
-				x = true;
-
-			} else if (select == 2) {
-				// TODO THIS THING
-				System.out.println("TODO implement, running setup");
-				x = true;
-				// TEMPORARY
-				select = 1;
-
-			} else {
-				System.out.println("Invalid selection.");
-			}
-		} while (!x);
+				if (select == 1 || select == 2) {
+					x = true;
+				} else {
+					System.out.println("Invalid selection.");
+				}
+			} while (!x);
+		} else {
+			select = 1;
+		}
 
 		if (select == 1) {
 			int[] settings = new int[4];
 			setup(settings, s);
+			makeConfig(settings, s);
 			Clock clock = Clock.systemUTC();
-			msg(1, 0, clock);
 			File log = new File("log.txt");
 			new Thread(() -> runLights(clock, settings, true, lightStatus)).start();
 			new Thread(() -> runLights(clock, settings, false, lightStatus)).start();
 
 		} else if (select == 2) {
-			// TODO implement, temporary exit
-			System.exit(0);
+			int[] settings = new int[4];
+			Scanner sFile = new Scanner(cfg);
+			String z = sFile.nextLine();
+			System.out.println(z);
+			String[] split = z.split("\\.");
+			settings[0] = Integer.parseInt(split[0]);
+			settings[1] = Integer.parseInt(split[1]);
+			settings[2] = Integer.parseInt(split[2]);
+			settings[3] = Integer.parseInt(split[3]);
+			Clock clock = Clock.systemUTC();
+			File log = new File("log.txt");
+			new Thread(() -> runLights(clock, settings, true, lightStatus)).start();
+			new Thread(() -> runLights(clock, settings, false, lightStatus)).start();
+
 		} else {
 			System.out.println("ERROR: THERE SHOULD BE NO CASE WHERE YOU SEE THIS");
 			System.exit(0);
@@ -78,6 +87,21 @@ public class Lights {
 			x[3] = s.nextInt();
 		} while (x[3] < 0);
 		return;
+	}
+
+	private static void makeConfig(int[] settings, Scanner s) {
+		System.out.printf("Save config? (y/n) ");
+		String x = s.next();
+		if (x.startsWith("y") || x.startsWith("Y")) {
+			FileWriter fw;
+			try {
+				fw = new FileWriter("config.txt", true);
+				fw.write(settings[0] + "." + settings[1] + "." + settings[2] + "." + settings[3]);
+				fw.close();
+			} catch (IOException e) {
+				System.out.println("Config creation failed.");
+			}
+		}
 	}
 
 	private static String parseColor(int x) {
