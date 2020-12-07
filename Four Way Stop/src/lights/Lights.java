@@ -65,10 +65,10 @@ public class Lights {
 			x[1] = s.nextInt();
 		} while (x[1] < 1);
 
-		// Decided offset will permanently be 2, left for compatibility and in case I
-		// change my mind, which I probably will because 2 seconds seems short.
-		// It's just too easy to break with strange numbers for now.
-		x[3] = 2;
+		do {
+			System.out.printf("How many seconds should the red lights overlap?");
+			x[3] = s.nextInt();
+		} while (x[3] < 0);
 		return;
 	}
 
@@ -90,9 +90,14 @@ public class Lights {
 
 	private static String msg(int light, int color, Clock clock) {
 		String time = clock.instant().toString();
-		String lightx = Integer.toString(light);
+		String lightx = "Error";
+		if (light == 1) {
+			lightx = "North/South";
+		} else if (light == 2) {
+			lightx = "East/West";
+		}
 		String x = String.format(
-				time + ": Light " + lightx + " changed from " + parseColor(color) + " to " + parseColor(color + 1));
+				time + ": Lights " + lightx + " changed from " + parseColor(color) + " to " + parseColor(color + 1));
 		// TODO Make it also go to a log, unless I decide to do it outside the method
 		// or you know I don't do that at all, just kinda depends.
 		return x;
