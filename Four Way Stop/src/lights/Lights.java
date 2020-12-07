@@ -43,21 +43,22 @@ public class Lights {
 			File log = new File("log.txt");
 			new Thread(() -> runLights(clock, settings, true, lightStatus)).start();
 			new Thread(() -> runLights(clock, settings, false, lightStatus)).start();
+			new Thread(() -> checkLight(lightStatus)).start();
 
 		} else if (select == 2) {
 			int[] settings = new int[4];
 			Scanner sFile = new Scanner(cfg);
 			String z = sFile.nextLine();
-			System.out.println(z);
+			sFile.close();
 			String[] split = z.split("\\.");
-			settings[0] = Integer.parseInt(split[0]);
-			settings[1] = Integer.parseInt(split[1]);
-			settings[2] = Integer.parseInt(split[2]);
-			settings[3] = Integer.parseInt(split[3]);
+			for (int i = 0; i < settings.length; i++) {
+				  settings[i] = Integer.parseInt(split[i]);
+				}
 			Clock clock = Clock.systemUTC();
 			File log = new File("log.txt");
 			new Thread(() -> runLights(clock, settings, true, lightStatus)).start();
 			new Thread(() -> runLights(clock, settings, false, lightStatus)).start();
+			new Thread(() -> checkLight(lightStatus)).start();
 
 		} else {
 			System.out.println("ERROR: THERE SHOULD BE NO CASE WHERE YOU SEE THIS");
@@ -155,17 +156,17 @@ public class Lights {
 				do {
 					// Red to green, sleep length of ns green
 					System.out.println(msg(1, 2, clock));
-					setLight(settings, true, 2);
+					setLight(settings, true, 0);
 					Thread.sleep(ns);
 
 					// Green to yellow, sleep length of yellow
 					System.out.println(msg(1, 0, clock));
-					setLight(settings, true, 0);
+					setLight(settings, true, 1);
 					Thread.sleep(ye);
 
 					// Yellow to red, sleep length of both overlaps + ew green + yellow
 					System.out.println(msg(1, 1, clock));
-					setLight(settings, true, 1);
+					setLight(settings, true, 2);
 					Thread.sleep(ov * 2 + ew + ye);
 				} while (true);
 
@@ -179,17 +180,17 @@ public class Lights {
 
 					// Red to green, sleep length of ew
 					System.out.println(msg(2, 2, clock));
-					setLight(settings, false, 2);
+					setLight(settings, false, 0);
 					Thread.sleep(ew);
 
 					// Green to yellow, sleep length of yellow
 					System.out.println(msg(2, 0, clock));
-					setLight(settings, false, 0);
+					setLight(settings, false, 1);
 					Thread.sleep(ye);
 
 					// Yellow to red, sleep 1 overlap, rest is at the start of loop
 					System.out.println(msg(2, 1, clock));
-					setLight(settings, false, 1);
+					setLight(settings, false, 2);
 					Thread.sleep(ov);
 				} while (true);
 			}
@@ -208,4 +209,18 @@ public class Lights {
 		}
 	}
 
+	private static void checkLight(int[] x) {
+		if ((x[0] == 2 && x[2] == 2) || (x[0] == 2 && x[3] == 2) || (x[1] == 2 && x[2] == 2)
+				|| (x[1] == 2 && x[3] == 2)) {
+			try {
+				Thread.sleep(500);
+				if ((x[0] == 2 && x[2] == 2) || (x[0] == 2 && x[3] == 2) || (x[1] == 2 && x[2] == 2)
+						|| (x[1] == 2 && x[3] == 2)) {
+					System.out.println("Lights malfunctioning. Exiting.");
+					System.exit(0);
+				}
+			} catch (InterruptedException e) {
+			}
+		}
+	}
 }
